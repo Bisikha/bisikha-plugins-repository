@@ -1,0 +1,478 @@
+<?php
+/**
+ * =====================================================================================
+ * This file will have all the required code for the single itinerary page at front-end.
+ * =====================================================================================
+ */
+
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+// Remove the template function which is running the default price template.
+remove_action( 'wp_travel_after_single_title', 'wp_travel_trip_price', 1 );
+
+// Remove the template function which is running the booking listing by departure date..
+remove_action( 'wp_travel_booking_departure_date_list', 'wp_travel_booking_fixed_departure_listing' );
+
+/**
+ * Function to display additional currency and price at front-end below single title.
+ *
+ * @param int  $trip_id ID for current trip.
+ * @param bool $hide_rating Boolean value to show/hide rating.
+ */
+function wp_travel_tuskphoto_custom_trip_price( $trip_id, $hide_rating = false ) {
+	$settings = wp_travel_get_settings();
+
+	$trip_pricing_options_data = get_post_meta( $trip_id, 'wp_travel_pricing_options', true );
+
+	// echo '<pre>';
+	// print_r( $trip_pricing_options_data );
+	// echo '<pre>';
+	
+
+	// custom
+	foreach ( $trip_pricing_options_data as $single_price_key => $single_pricing_option_data) {
+
+		$single_enable_additional_currency = ! empty( $single_pricing_option_data['single_enable_additional_currency'] ) ? $single_pricing_option_data['single_enable_additional_currency'] : ''; 
+		$single_select_additional_currency = ! empty( $single_pricing_option_data['single_select_additional_currency'] ) ? $single_pricing_option_data['single_select_additional_currency'] : ''; 
+		$single_additional_currency_amount = ! empty( $single_pricing_option_data['single_additional_currency_amount'] ) ? $single_pricing_option_data['single_additional_currency_amount'] : ''; 
+		$singel_sale_additional_currency_amount = ! empty( $single_pricing_option_data['single_sale_additional_currency_amount'] ) ? $single_pricing_option_data['single_sale_additional_currency_amount'] : ''; 
+
+	 }
+
+	if ( 'USD' === $single_select_additional_currency ){
+		$single_additional_currency_symbol = '&#36;';
+	} elseif ( 'GBP' === $single_select_additional_currency ) {
+		$single_additional_currency_symbol = '&#163;';
+	} elseif ( 'EUR' === $single_select_additional_currency ) {
+		$single_additional_currency_symbol = '&#128;';
+	} elseif ( 'BWP' === $single_select_additional_currency ) {
+		$single_additional_currency_symbol = 'P';
+	} elseif ( 'ZAR' === $single_select_additional_currency ) {
+		$single_additional_currency_symbol = 'R';
+	} elseif ( 'BRL' === $single_select_additional_currency ) {
+		$single_additional_currency_symbol = 'R&#36;';
+	} else {
+		$single_additional_currency_symbol = '&#165;';
+	}
+
+	// $single_additional_currency_amount = 
+	//custom 
+
+	foreach( $trip_pricing_options_data as $price_key => $pricing_option_data ) {
+		$additional_currency_prices[]      = ! empty( $pricing_option_data['additional_currency_amount'] ) ? $pricing_option_data['additional_currency_amount'] : array();
+		$enable_additional_currency        = ! empty( $pricing_option_data['enable_additional_currency'] ) ? $pricing_option_data['enable_additional_currency'] : '';
+		$select_additional_currency        = ! empty( $pricing_option_data['select_additional_currency'] ) ? $pricing_option_data['select_additional_currency'] : '';
+		$additional_currency_amount        = ! empty( $pricing_option_data['additional_currency_amount'] ) ? $pricing_option_data['additional_currency_amount'] : '';
+		$sale_additional_currency_amount[] = ! empty( $pricing_option_data['sale_additional_currency_amount'] ) ? $pricing_option_data['sale_additional_currency_amount'] : array();
+	}
+	$min_additional_currency_price       = min( $additional_currency_prices );
+	$min_additional_currency_price       = ! empty( $min_additional_currency_price ) ? $min_additional_currency_price : '';
+	$min_sale_additional_currency_amount = min( $sale_additional_currency_amount );
+	$min_sale_additional_currency_amount = ! empty( $min_sale_additional_currency_amount ) ? $min_sale_additional_currency_amount : '';
+
+	if ( 'USD' === $select_additional_currency ){
+		$additional_currency_symbol = '&#36;';
+	} elseif ( 'GBP' === $select_additional_currency ) {
+		$additional_currency_symbol = '&#163;';
+	} elseif ( 'EUR' === $select_additional_currency ) {
+		$additional_currency_symbol = '&#128;';
+	} elseif ( 'BWP' === $select_additional_currency ) {
+		$additional_currency_symbol = 'P';
+	} elseif ( 'ZAR' === $select_additional_currency ) {
+		$additional_currency_symbol = 'R';
+	} elseif ( 'BRL' === $select_additional_currency ) {
+		$additional_currency_symbol = 'R&#36;';
+	} else {
+		$additional_currency_symbol = '&#165;';
+	}
+
+	$min_price_key = wp_travel_get_min_price_key( $trip_pricing_options_data );
+	$regular_price = wp_travel_get_actual_trip_price( $trip_id, $min_price_key, true ); // Third param will return regular price if sale price isn't enabled.
+	$trip_price    = wp_travel_get_actual_trip_price( $trip_id, $min_price_key ); // This is actual price.
+
+	$enable_sale = wp_travel_is_enable_sale( $trip_id );
+
+	$currency_code   = ( isset( $settings['currency'] ) ) ? $settings['currency'] : '';
+	$currency_symbol = wp_travel_get_currency_symbol( $currency_code );
+	$per_person_text = wp_travel_get_price_per_text( $trip_id );
+
+	if( ! $enable_sale  ) {
+		$min_sale_additional_currency_amount = $min_additional_currency_price;
+	}
+
+	$pricing_option_type = get_post_meta( $trip_id, 'wp_travel_pricing_option_type', true );
+	echo $pricing_option_type;
+	// echo $single_enable_additional_currency;
+	// echo $trip_price;
+	?>
+
+	<!-- custom -->
+	<!-- <?php //if ( $pricing_types ---> single pricing ho vanay ) ?> -->
+
+	<!-- custom -->
+
+	<div class="wp-detail-review-wrap">
+		<?php do_action( 'wp_travel_single_before_trip_price', $trip_id, $hide_rating ); ?>
+		<div class="wp-travel-trip-detail">
+			<?php if ( $trip_price ) : ?>
+				<div class="trip-price" >
+					<?php if ( ! $single_enable_additional_currency ) : ?>					
+						<?php if ( $single_enable_sale ) : ?>
+							<del>
+								<span><?php echo wp_travel_get_formated_price_currency( $regular_price, true ); ?></span>
+							</del>
+						<?php endif ?>
+						<span class="person-count">
+							<ins>
+								<span><?php echo wp_travel_get_formated_price_currency( $trip_price ); ?></span>
+							</ins>
+							<?php if ( ! empty( $per_person_text ) ) : ?>
+								<?php echo esc_html( $per_person_text ); ?>
+							<?php endif; ?>
+						</span>
+			
+					<?php elseif( $single_enable_additional_currency ) : ?>				
+						<div class="trip-price trip-price-single-additional-currency" >
+						<!-- <?php //if ( $enable_sale ) : ?>
+							<del>
+								<span><?php //echo esc_attr( $single_additional_currency_symbol ); ?></span><span><?php echo wp_travel_tuskphoto_custom_get_formated_price_currency( $single_additional_currency_amount, true ); ?></span>
+							</del>
+						<?php //endif; ?> -->
+						<span class="person-count">
+							<ins>
+								<span><?php echo esc_attr( $single_additional_currency_symbol ); ?></span><span><?php echo wp_travel_tuskphoto_custom_get_formated_price_currency( $single_additional_currency_amount ); ?></span>
+							</ins>
+							
+							<?php if ( ! empty( $per_person_text ) ) : ?>
+								<?php echo esc_html( $per_person_text ); ?>
+							<?php endif; ?>
+						</span>
+					</div>
+					
+
+					<?php elseif ( 'yes' !== $enable_additional_currency ) : ?>
+						<?php if ( $enable_sale ) : ?>
+							<del>
+								<span><?php echo wp_travel_get_formated_price_currency( $regular_price, true ); ?></span>
+							</del>
+						<?php endif; ?>
+						<span class="person-count">
+							<ins>
+								<span><?php echo wp_travel_get_formated_price_currency( $trip_price ); ?></span>
+							</ins>
+							<?php if ( ! empty( $per_person_text ) ) : ?>
+								<?php echo esc_html( $per_person_text ); ?>
+							<?php endif; ?>
+						</span>
+
+					<?php else : ?>
+
+						<div class="trip-price trip-price-additional-currency" >gffdsfaasfds
+							<?php if ( $enable_sale ) : ?>
+								<del>
+									<span><?php echo esc_attr( $additional_currency_symbol ); ?></span><span><?php echo wp_travel_tuskphoto_custom_get_formated_price_currency( $min_additional_currency_price, true ); ?></span>
+								</del>
+							<?php endif; ?>
+							<span class="person-count">
+								<ins>
+									<span><?php echo esc_attr( $additional_currency_symbol ); ?></span><span><?php echo wp_travel_tuskphoto_custom_get_formated_price_currency( $min_sale_additional_currency_amount ); ?></span>
+								</ins>
+								<?php if ( ! empty( $per_person_text ) ) : ?>
+									<?php echo esc_html( $per_person_text ); ?>
+								<?php endif; ?>
+							</span>
+						</div>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
+		<?php do_action( 'wp_travel_single_after_trip_price', $trip_id, $hide_rating ); ?>
+	</div>
+
+	<?php
+}
+add_action( 'wp_travel_after_single_title', 'wp_travel_tuskphoto_custom_trip_price', 0 );
+
+
+
+/**
+ * Function to run the custom bookings listings when list by fixed departure is selected
+ *
+ * @return void
+ */
+function wp_travel_tuskphoto_custom_booking_fixed_departure_listing( $trip_multiple_dates_data ) {
+
+	if ( empty( $trip_multiple_dates_data ) || ! is_array( $trip_multiple_dates_data ) ) {
+		return;
+	}
+
+	global $post;
+
+	if ( ! $post ) {
+		return;
+	}
+
+	$trip_id = $post->ID;
+
+	$status_col           = apply_filters( 'wp_travel_inventory_enable_status_column', false, $trip_id );
+	$status_msg           = get_post_meta( $trip_id, 'wp_travel_inventory_status_message_format', true );
+	$sold_out_btn_rep_msg = apply_filters( 'wp_travel_inventory_sold_out_button', '', $trip_id );
+
+	$currency_symbol   = wp_travel_get_currency_symbol();
+	$per_person_text   = wp_travel_get_price_per_text( $trip_id );
+	$inventory_enabled = false;
+	$show_end_date     = wp_travel_booking_show_end_date();
+	$trip_extras_class = new Wp_Travel_Extras_Frontend();
+
+	?>
+	<div class="trip_list_by_fixed_departure_dates">
+		<div class="trip_list_by_fixed_departure_dates_header">
+			<span class="trip_list_by_fixed_departure_dates_wrap">
+				<span class="trip_list_by_fixed_departure_dates_pricing_name_label"><?php esc_html_e( 'Pricing Name', 'wp-travel' ); ?></span>
+				<span class="trip_list_by_fixed_departure_dates_start_label"><?php esc_html_e( 'START', 'wp-travel' ); ?></span>
+				<?php if ( $show_end_date ) : ?>
+					<span class="trip_list_by_fixed_departure_dates_end_label"><?php esc_html_e( 'END', 'wp-travel' ); ?></span>
+				<?php endif ?>
+				<?php if ( $status_col ) : ?>
+					<span class="trip_list_by_fixed_departure_dates_seats_label"><?php esc_html_e( 'SEATS LEFT', 'wp-travel' ); ?></span>
+				<?php endif; ?>
+				<span class="trip_list_by_fixed_departure_dates_pax_label"><?php esc_html_e( 'PAX', 'wp-travel' ); ?></span>
+				<span class="trip_list_by_fixed_departure_dates_price_label"><?php esc_html_e( 'PRICE', 'wp-travel' ); ?></span>
+			</span>
+		</div>
+		<ul class="trip_list_by_fixed_departure_dates_list">
+			<?php
+			foreach ( $trip_multiple_dates_data as $ky => $date_option ) :
+
+				$start_date      = isset( $date_option['start_date'] ) && ! empty( $date_option['start_date'] ) ? $date_option['start_date'] : '';
+				$end_date        = isset( $date_option['end_date'] ) && ! empty( $date_option['end_date'] ) ? $date_option['end_date'] : '';
+				$pricing_options = isset( $date_option['pricing_options'] ) && ! empty( $date_option['pricing_options'] ) ? $date_option['pricing_options'] : array();
+
+				?>
+				<?php if ( ! empty( $pricing_options ) && is_array( $pricing_options ) ) : ?>
+					<?php
+					foreach ( $pricing_options as $indx => $price_key ) :
+						$variation = wp_travel_get_pricing_variation( $trip_id, $price_key );
+
+						if ( ! $variation ) {
+							continue;
+						}
+
+						foreach ( $variation as $k => $var ) :
+
+							$rand = rand();
+
+							$pricing_name         = isset( $var['pricing_name'] ) ? $var['pricing_name'] : '';
+							$min_pax              = isset( $var['min_pax'] ) && ! empty( $var['min_pax'] ) ? sprintf( __( '%s Pax', 'wp-travel' ), $var['min_pax'] ) : false;
+							$max_pax              = isset( $var['max_pax'] ) && ! empty( $var['min_pax'] ) ? sprintf( __( '%s Pax', 'wp-travel' ), $var['max_pax'] ) : false;
+							$pricing_sale_enabled = isset( $var['enable_sale'] ) ? $var['enable_sale'] : 'no';
+							$pricing_sale_price   = isset( $var['sale_price'] ) ? $var['sale_price'] : '';
+							$pricing_option_price = isset( $var['price'] ) ? $var['price'] : '';
+							$price_key            = isset( $var['price_key'] ) ? $var['price_key'] : '';
+
+							// Additional currency.
+							$enable_additional_currency      = isset( $var['enable_additional_currency'] ) ? $var['enable_additional_currency'] : '';
+							$select_additional_currency      = isset( $var['select_additional_currency'] ) ? $var['select_additional_currency'] : '';
+							$additional_currency_amount      = isset( $var['additional_currency_amount'] ) ? $var['additional_currency_amount'] : '';
+							$sale_additional_currency_amount = isset( $var['sale_additional_currency_amount'] ) ? $var['sale_additional_currency_amount'] : '';
+
+							if ( 'USD' === $select_additional_currency ){
+								$additional_currency_symbol = '&#36;';
+							} elseif ( 'GBP' === $select_additional_currency ) {
+								$additional_currency_symbol = '&#163;';
+							} elseif ( 'EUR' === $select_additional_currency ) {
+								$additional_currency_symbol = '&#128;';
+							} elseif ( 'BWP' === $select_additional_currency ) {
+								$additional_currency_symbol = 'P';
+							} elseif ( 'ZAR' === $select_additional_currency ) {
+								$additional_currency_symbol = 'R';
+							} elseif ( 'BRL' === $select_additional_currency ) {
+								$additional_currency_symbol = 'R&#36;';
+							} else {
+								$additional_currency_symbol = '&#165;';
+							}
+
+							$price_variations = wp_travel_get_pricing_variation_options();
+							$per_label        = isset( $var['type'] ) && 'custom' !== $var['type'] ? $price_variations[ $var['type'] ] : ucfirst( $var['custom_label'] );
+
+							$inventory_data = array(
+								'status_message' => __( 'N/A', 'wp-travel' ),
+								'sold_out'       => false,
+								'available_pax'  => 0,
+								'booked_pax'     => 0,
+								'pax_limit'      => 0,
+								'min_pax'        => $min_pax,
+								'max_pax'        => $max_pax,
+							);
+
+							$inventory_data = apply_filters( 'wp_travel_inventory_data', $inventory_data, $trip_id, $price_key, $start_date );
+
+							$pricing_status_msg = $inventory_data['status_message'];
+							$pricing_sold_out   = $inventory_data['sold_out'];
+							$available_pax      = $inventory_data['available_pax'];
+							$booked_pax         = $inventory_data['booked_pax'];
+							$pax_limit          = $inventory_data['pax_limit'];
+							$min_pax            = $inventory_data['min_pax'];
+							$max_pax            = $inventory_data['max_pax'];
+
+							$min_attr = 'min=1';
+							if ( $min_pax ) {
+								$min_attr = 'min=' . $min_pax;
+							}
+							$max_attr = '';
+							if ( $max_pax ) {
+								$max_attr = 'max=' . $max_pax;
+							}
+
+							$unavailable_class = '';
+							$availability      = wp_travel_trip_availability( $trip_id, $price_key, $start_date, $pricing_sold_out );
+							if ( ! $availability ) {
+								$unavailable_class = 'pricing_unavailable';
+							}
+							$parent_id = sprintf( 'pricing-%s-%s', esc_attr( $price_key ), $rand );
+
+							$cart_url = add_query_arg( 'trip_id', get_the_ID(), wp_travel_get_cart_url() );
+							$cart_url = add_query_arg( 'price_key', $price_key, $cart_url );
+							?>
+
+								<li class="<?php echo esc_attr( $unavailable_class ); ?>" >
+								<form action="<?php echo esc_url( $cart_url ); ?>" id="<?php echo esc_attr( $parent_id ); ?>" class="wp-travel-add-to-cart-form">
+									<div class="trip_list_by_fixed_departure_dates_wrap">
+										<span class="trip_list_by_fixed_departure_dates_pricing_name"><?php echo $pricing_name; ?></span>
+										<span class="trip_list_by_fixed_departure_dates_start">
+											<div class="trip_list_by_fixed_departure_dates_day"><?php echo esc_html( date_i18n( 'l', strtotime( $start_date ) ) ); ?></div>
+											<div class="trip_list_by_fixed_departure_dates_date"><?php echo esc_html( wp_travel_format_date( $start_date ) ); ?>
+											<input type="hidden" name="trip_date" value="<?php echo esc_attr( $start_date ); ?>">
+											</div>
+											<?php if ( $show_end_date && '' !== $end_date ) : ?>
+												<div class="trip_list_by_fixed_departure_dates_length">
+													<div><?php echo esc_html( wp_travel_get_date_diff( $start_date, $end_date ) ); ?></div>
+												</div>
+											<?php endif ?>
+										</span>
+
+										<?php if ( $show_end_date ) : ?>
+											<span class="trip_list_by_fixed_departure_dates_end">
+												<?php if ( '' !== $end_date ) : ?>
+													<div class="trip_list_by_fixed_departure_dates_day"><?php echo esc_html( date_i18n( 'l', strtotime( $end_date ) ) ); ?></div>
+													<div class="trip_list_by_fixed_departure_dates_date"><?php echo esc_html( wp_travel_format_date( $end_date ) ); ?></div>
+												<?php endif ?>
+											</span>
+										<?php endif; ?>
+										<?php if ( $status_col ) : ?>
+											<span class="trip_list_by_fixed_departure_dates_seats">
+												<!-- <span class="seat_qty"><?php echo esc_html( $available_pax ); ?></span> -->
+												<?php echo ( $pricing_status_msg ); ?>
+											</span>
+										<?php endif; ?>
+										<span class="trip_list_by_fixed_departure_dates_pax">
+											<input <?php echo esc_attr( $min_attr ); ?> <?php echo esc_attr( $max_attr ); ?> name="pax" placeholder="<?php echo esc_attr__( 'PAX', 'wp-travel' ); ?>" required type="number" data-parent-id="<?php echo esc_attr( $parent_id ); ?>" >
+										</span>
+										<span class="trip_list_by_fixed_departure_dates_price">
+										<?php
+											$display_price = $pricing_option_price;
+											$display_price_additional_currencies = $additional_currency_amount;
+										if ( 'yes' === $pricing_sale_enabled ) {
+											$display_price = $pricing_sale_price;
+											$display_price_additional_currencies = $sale_additional_currency_amount;
+										}
+										$display_price_additional_currencies = ! empty( $display_price_additional_currencies ) ? $display_price_additional_currencies : 'N/A';
+										?>
+										<!-- if additional currency is not enabled then use global currency -->
+										<?php if ( 'yes' !== $enable_additional_currency ) : ?>
+										<?php if ( 'yes' === $pricing_sale_enabled ) { ?>
+											<div class="del_price"><?php echo wp_travel_get_formated_price_currency( $pricing_option_price, true ); ?></div>
+											<div class="minus_ribbon">
+												<p><?php esc_html_e( 'sale', 'wp-travel' ); ?></p>
+											</div>
+										<?php } ?>
+											<div class="real_price">
+												<?php echo wp_travel_get_formated_price_currency( $display_price ); ?>
+											</div>
+										<?php endif; ?>
+										<!-- if additional currency is not enabled then use global currency -->
+
+										<?php if ( 'yes' === $enable_additional_currency ) : ?>
+										<?php if ( 'yes' === $pricing_sale_enabled ) { ?>
+											<span><?php echo esc_attr( $additional_currency_symbol ); ?></span><div class="del_price"><?php echo wp_travel_tuskphoto_custom_get_formated_price_currency( $additional_currency_amount, true ); ?></div>
+											<div class="minus_ribbon">
+												<p><?php esc_html_e( 'sale', 'wp-travel' ); ?></p>
+											</div>
+										<?php } ?>
+											<div class="real_price">
+												<span><?php echo esc_attr( $additional_currency_symbol ); ?></span><?php echo wp_travel_tuskphoto_custom_get_formated_price_currency( $display_price_additional_currencies ); ?>
+											</div>
+										<?php endif; ?>
+											<?php echo __( 'Per ', 'wp-travel' ) . esc_html( $per_label ); ?>
+										</span>
+									</div>
+									<div class="trip_list_by_fixed_departure_dates_booking">
+										<div class="action">
+											<?php
+											// $trip_extras_class = new Wp_Travel_Extras_Frontend();
+											if ( $pricing_sold_out ) {
+												?>
+												<p class="wp-travel-sold-out"><?php echo $sold_out_btn_rep_msg; ?></p>
+
+											<?php } else { ?>
+												<?php if ( $trip_extras_class->has_trip_extras( $trip_id, $price_key ) ) { ?>
+													<a href="#0" class="btn btn-primary btn-sm btn-inverse show-booking-row-fd"><?php echo esc_html__( 'Select', 'wp-travel' ); ?></a>
+													<?php
+													// @since 1.9.3 To display group discount pricing lists.
+													do_action( 'wp_travel_booking_after_select_button', $trip_id, $price_key  );
+													?>
+													<?php
+												} else {
+													?>
+													<input type="submit" value="<?php echo esc_html__( 'Book now', 'wp-travel' ); ?>" class="btn add-to-cart-btn btn-primary btn-sm btn-inverse" data-parent-id="<?php echo esc_attr( $parent_id ); ?>" >
+													<?php
+												}
+											}
+											?>
+										</div>
+
+									</div>
+									<?php if ( $availability ) : ?>
+										<div class="wp-travel-booking-row-fd">
+											<?php
+											/**
+											 * Support For WP Travel Tour Extras Plugin.
+											 *
+											 * @since 1.5.8
+											 */
+											do_action( 'wp_travel_trip_extras', $price_key );
+											?>
+											<input type="hidden" name="trip_id" value="<?php echo esc_attr( get_the_ID() ); ?>" />
+											<input type="hidden" name="price_key" value="<?php echo esc_attr( $price_key ); ?>" />
+											<?php if ( $pricing_sold_out ) : ?>
+												<p class="wp-travel-sold-out">
+													<?php echo $sold_out_btn_rep_msg; ?>
+												</p>
+												<?php
+											else :
+												?>
+												<input type="submit" value="<?php echo esc_html__( 'Book now', 'wp-travel' ); ?>" class="btn add-to-cart-btn btn-primary btn-sm btn-inverse" data-parent-id="<?php echo esc_attr( $parent_id ); ?>" >
+
+												<?php
+											endif;
+											?>
+										</div>
+									<?php endif; ?>
+								</form>
+							</li>
+
+						<?php endforeach; ?>
+					<?php endforeach; ?>
+			<?php else : ?>
+				<p><?php esc_html_e( 'Pricing options not found.', 'wp-travel' ); ?></p>
+			<?php endif; ?>
+			<?php endforeach; ?>
+		</ul>
+	</div>
+
+	<?php
+}
+add_action( 'wp_travel_booking_departure_date_list', 'wp_travel_tuskphoto_custom_booking_fixed_departure_listing' );
+
